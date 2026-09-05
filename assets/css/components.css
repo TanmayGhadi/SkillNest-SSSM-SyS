@@ -1,0 +1,187 @@
+/* ==========================================================================
+   SKILLNEST — COMPONENT STYLES & INTERACTIVE UI
+   ========================================================================== */
+
+/* Custom Inputs & Selects */
+.form-control-custom, .form-select-custom {
+  background-color: #FFFFFF;
+  border: 1.5px solid var(--border-card);
+  border-radius: var(--radius-sm);
+  padding: 11px 16px;
+  font-size: 0.92rem;
+  color: var(--text-primary);
+  transition: var(--transition-smooth);
+}
+
+.form-control-custom:focus, .form-select-custom:focus {
+  border-color: var(--primary-forest);
+  box-shadow: 0 0 0 3px rgba(33, 77, 58, 0.12);
+  outline: none;
+  background-color: #FFFFFF;
+}
+
+.form-label-custom {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+  display: block;
+}
+
+/* Custom Checkbox */
+.form-check-custom .form-check-input {
+  border-radius: 4px;
+  border: 1.5px solid var(--border-card);
+}
+
+.form-check-custom .form-check-input:checked {
+  background-color: var(--primary-forest);
+  border-color: var(--primary-forest);
+}
+
+/* Custom Tabs */
+.nav-tabs-custom {
+  border-bottom: 1.5px solid var(--border-card);
+  gap: 8px;
+}
+
+.nav-tabs-custom .nav-link {
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-weight: 600;
+  font-size: 0.92rem;
+  padding: 10px 18px;
+  border-radius: var(--radius-full);
+  transition: var(--transition-smooth);
+}
+
+.nav-tabs-custom .nav-link.active {
+  color: var(--primary-forest);
+  background: var(--sage-light);
+}
+
+/* Order Status Badges */
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.status-pending {
+  background: #FFF5E5;
+  color: #9C600B;
+}
+
+.status-in-progress {
+  background: #EBF2ED;
+  color: #214D3A;
+}
+
+.status-completed {
+  background: #E6F5EC;
+  color: #1B6F3E;
+}
+
+.status-cancelled {
+  background: #FDF0F0;
+  color: #B23B3B;
+}
+
+/* Modal Customization */
+.modal-content-custom {
+  background: #FBFAF6;
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+}
+
+.modal-header-custom {
+  border-bottom: 1px solid var(--border-card);
+  padding: 20px 24px;
+}
+
+.modal-footer-custom {
+  border-top: 1px solid var(--border-card);
+  padding: 16px 24px;
+}
+
+/* Toast Notifications */
+.sn-toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: #FFFFFF;
+  border: 1px solid var(--border-card);
+  border-left: 4px solid var(--primary-forest);
+  border-radius: var(--radius-sm);
+  padding: 14px 20px;
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  z-index: 9999;
+  transform: translateY(100px);
+  opacity: 0;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.sn-toast.show {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+/* Paper Cut and Notebook Line Accents */
+.notebook-ruled {
+  background-image: linear-gradient(#F4F1E8 1px, transparent 1px);
+  background-size: 100% 28px;
+  line-height: 28px;
+}
+
+/* Verified Student Badge */
+.verified-student-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(33, 77, 58, 0.08);
+  color: var(--primary-forest);
+  font-size: 0.74rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+}
+
+/* Dual Persona Switcher Banner */
+.persona-switcher {
+  background: #FFFFFF;
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-md);
+  padding: 12px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+/* Testimonial Quote Card */
+.quote-card {
+  background: #FFFFFF;
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-md);
+  padding: 24px;
+  position: relative;
+}
+
+.quote-mark {
+  font-family: var(--font-serif);
+  font-size: 3rem;
+  color: var(--sage-green);
+  opacity: 0.4;
+  line-height: 0.6;
+  margin-bottom: 10px;
+}
