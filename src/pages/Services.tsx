@@ -81,10 +81,12 @@ export const Services: React.FC = () => {
   const filteredServices = services.filter((srv) => {
     if (!searchQuery.trim()) return true;
     const q = searchQuery.toLowerCase();
+    const catName = (typeof srv.category === 'object' ? srv.category?.name : (srv.category || '')).toLowerCase();
     return (
       srv.title.toLowerCase().includes(q) ||
       srv.description.toLowerCase().includes(q) ||
-      srv.category.toLowerCase().includes(q) ||
+      catName.includes(q) ||
+      (srv.skills && srv.skills.some((t) => t.toLowerCase().includes(q))) ||
       (srv.tags && srv.tags.some((t) => t.toLowerCase().includes(q)))
     );
   });

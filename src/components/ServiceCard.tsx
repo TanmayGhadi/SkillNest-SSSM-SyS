@@ -74,7 +74,7 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({ service }) => {
         {/* Top Badges */}
         <div className="flex items-center justify-between gap-2 mb-3">
           <span className="px-3 py-1 rounded-full bg-[#EFEAE0] text-[#1B382B] text-xs font-semibold uppercase tracking-wider border border-[#E2D9C8]">
-            {service.category}
+            {typeof service.category === 'object' ? service.category?.name : (service.category || 'General')}
           </span>
 
           {!service.cover_image && (

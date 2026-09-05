@@ -1,8 +1,8 @@
 -- ============================================================================
--- SKILLNEST — POSTGRESQL PRODUCTION SCHEMA FOR SUPABASE
+-- SKILLNEST — POSTGRESQL PRODUCTION MIGRATION FOR SUPABASE
 -- Institution: Government Polytechnic Malvan (GPM Malvan)
 -- Project: Student Skill & Service Management System (SSSM)
--- Tagline: "By GPM Students, For GPM Students."
+-- Copy and paste this script directly into Supabase Dashboard -> SQL Editor -> Run
 -- ============================================================================
 
 -- 1. Enable Extensions
@@ -209,6 +209,7 @@ BEGIN
 
   RETURN NEW;
 EXCEPTION WHEN OTHERS THEN
+  -- Never let profile insert abort the auth.users signup
   RAISE WARNING 'handle_new_user error: %', SQLERRM;
   RETURN NEW;
 END;
@@ -230,6 +231,7 @@ ALTER TABLE public.favorites ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.reviews ENABLE ROW LEVEL SECURITY;
 
 -- 12. RLS Policies
+-- Profiles: readable by all, writable by user
 DROP POLICY IF EXISTS "Public profiles viewable by all" ON public.profiles;
 CREATE POLICY "Public profiles viewable by all" ON public.profiles FOR SELECT USING (true);
 
@@ -239,21 +241,25 @@ CREATE POLICY "Users can insert own profile" ON public.profiles FOR INSERT WITH 
 DROP POLICY IF EXISTS "Users can update own profile" ON public.profiles;
 CREATE POLICY "Users can update own profile" ON public.profiles FOR UPDATE USING (auth.uid() = id);
 
+-- Freelancer Profiles: readable by all, managed by owner
 DROP POLICY IF EXISTS "Freelancer profiles viewable by all" ON public.freelancer_profiles;
 CREATE POLICY "Freelancer profiles viewable by all" ON public.freelancer_profiles FOR SELECT USING (true);
 
 DROP POLICY IF EXISTS "Freelancers can manage own profile" ON public.freelancer_profiles;
 CREATE POLICY "Freelancers can manage own profile" ON public.freelancer_profiles FOR ALL USING (auth.uid() = user_id);
 
+-- Categories: readable by all
 DROP POLICY IF EXISTS "Categories viewable by all" ON public.service_categories;
 CREATE POLICY "Categories viewable by all" ON public.service_categories FOR SELECT USING (true);
 
+-- Services: readable by all, managed by freelancer
 DROP POLICY IF EXISTS "Services viewable by all" ON public.services;
 CREATE POLICY "Services viewable by all" ON public.services FOR SELECT USING (true);
 
 DROP POLICY IF EXISTS "Freelancers manage own services" ON public.services;
 CREATE POLICY "Freelancers manage own services" ON public.services FOR ALL USING (auth.uid() = freelancer_id);
 
+-- Orders: viewable by participants, insertable by students
 DROP POLICY IF EXISTS "Orders viewable by participants" ON public.orders;
 CREATE POLICY "Orders viewable by participants" ON public.orders FOR SELECT USING (auth.uid() = student_id OR auth.uid() = freelancer_id);
 
@@ -263,15 +269,18 @@ CREATE POLICY "Students can create orders" ON public.orders FOR INSERT WITH CHEC
 DROP POLICY IF EXISTS "Participants can update orders" ON public.orders;
 CREATE POLICY "Participants can update orders" ON public.orders FOR UPDATE USING (auth.uid() = student_id OR auth.uid() = freelancer_id);
 
+-- Notifications: managed by owner
 DROP POLICY IF EXISTS "Users view own notifications" ON public.notifications;
 CREATE POLICY "Users view own notifications" ON public.notifications FOR SELECT USING (auth.uid() = user_id);
 
 DROP POLICY IF EXISTS "Users update own notifications" ON public.notifications;
 CREATE POLICY "Users update own notifications" ON public.notifications FOR UPDATE USING (auth.uid() = user_id);
 
+-- Favorites: managed by owner
 DROP POLICY IF EXISTS "Users manage own favorites" ON public.favorites;
 CREATE POLICY "Users manage own favorites" ON public.favorites FOR ALL USING (auth.uid() = user_id);
 
+-- Reviews: viewable by all, insertable by student
 DROP POLICY IF EXISTS "Reviews viewable by all" ON public.reviews;
 CREATE POLICY "Reviews viewable by all" ON public.reviews FOR SELECT USING (true);
 

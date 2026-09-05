@@ -149,7 +149,7 @@ export const ServiceDetails: React.FC = () => {
           <div className="space-y-3">
             <div className="flex items-center gap-2 flex-wrap">
               <span className="px-3 py-1 rounded-full bg-[#E5ECE6] text-[#2D5A43] text-xs font-semibold uppercase tracking-wider border border-[#C5DCCE]">
-                {service.category}
+                {typeof service.category === 'object' ? service.category?.name : (service.category || 'General')}
               </span>
               <span className="text-xs text-[#717E73]">
                 Posted {new Date(service.created_at).toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' })}

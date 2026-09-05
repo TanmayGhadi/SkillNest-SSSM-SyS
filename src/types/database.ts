@@ -16,6 +16,7 @@ export type GPMDepartment = typeof GPM_DEPARTMENTS[number];
 
 export type OrderStatus = 
   | 'requested'
+  | 'pending'
   | 'accepted'
   | 'in_progress'
   | 'submitted'
@@ -26,29 +27,40 @@ export type OrderStatus =
 export interface Profile {
   id: string;
   full_name: string;
+  student_id?: string;
   enrollment_no: string;
   email: string;
   department: string;
   year: AcademicYear;
+  year_of_study?: string;
+  semester?: string;
   phone?: string;
   bio?: string;
   avatar_url?: string;
   role: UserRole;
   is_freelancer: boolean;
   created_at: string;
+  updated_at?: string;
 }
 
 export interface FreelancerProfile {
   id: string;
+  user_id?: string;
+  profile_id?: string;
+  title?: string;
   headline: string;
   bio: string;
   specializations: string[];
   skills: string[];
   hourly_rate: number;
   rating_avg: number;
+  rating?: number;
   rating_count: number;
+  reviews_count?: number;
   completed_orders: number;
+  completed_orders_count?: number;
   available: boolean;
+  is_verified?: boolean;
   profile?: Profile;
 }
 
@@ -69,11 +81,17 @@ export interface Service {
   price: number;
   delivery_days: number;
   skills: string[];
+  tags?: string[];
   images: string[];
+  cover_image?: string;
+  is_active?: boolean;
+  revisions_allowed?: number;
+  rating?: number;
+  reviews_count?: number;
   status: 'active' | 'paused' | 'archived';
   created_at: string;
-  freelancer?: Profile;
-  category?: ServiceCategory;
+  freelancer?: any;
+  category?: any;
 }
 
 export interface Order {
@@ -83,16 +101,21 @@ export interface Order {
   student_id: string;
   freelancer_id: string;
   service_title: string;
+  title?: string;
   amount: number;
+  agreed_price?: number;
+  attachment_url?: string;
   status: OrderStatus;
   deadline: string;
   requirements: string;
   created_at: string;
   completed_at?: string;
   student?: Profile;
-  freelancer?: Profile;
+  freelancer?: any;
   submissions?: Submission[];
+  latest_submission?: Submission;
   revisions?: Revision[];
+  latest_revision?: Revision;
 }
 
 export interface OrderMessage {
@@ -114,6 +137,7 @@ export interface Submission {
   file_url?: string;
   file_name?: string;
   submitted_at: string;
+  created_at?: string;
 }
 
 export interface Revision {
@@ -121,6 +145,7 @@ export interface Revision {
   order_id: string;
   student_id: string;
   feedback: string;
+  notes?: string;
   status: 'pending' | 'fulfilled';
   created_at: string;
 }
@@ -129,6 +154,7 @@ export interface AcademicResource {
   id: string;
   uploader_id: string;
   title: string;
+  description?: string;
   subject: string;
   department: string;
   semester: string;
@@ -137,6 +163,7 @@ export interface AcademicResource {
   file_name: string;
   file_size: string;
   downloads_count: number;
+  downloads?: number;
   created_at: string;
   uploader?: Profile;
 }

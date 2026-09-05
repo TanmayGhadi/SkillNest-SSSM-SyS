@@ -5,6 +5,7 @@ export type AppMode = 'student' | 'freelancer';
 interface ModeContextType {
   mode: AppMode;
   setMode: (mode: AppMode) => void;
+  switchMode: (mode: AppMode) => void;
   toggleMode: () => void;
 }
 
@@ -20,13 +21,17 @@ export const ModeProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.setItem('malvanskill_mode', newMode);
   };
 
+  const switchMode = (newMode: AppMode) => {
+    setMode(newMode);
+  };
+
   const toggleMode = () => {
     const next = mode === 'student' ? 'freelancer' : 'student';
     setMode(next);
   };
 
   return (
-    <ModeContext.Provider value={{ mode, setMode, toggleMode }}>
+    <ModeContext.Provider value={{ mode, setMode, switchMode, toggleMode }}>
       {children}
     </ModeContext.Provider>
   );

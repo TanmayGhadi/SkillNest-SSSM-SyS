@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { LogIn, Lock, Mail, AlertCircle, ArrowRight, Sparkles } from 'lucide-react';
+import { LogIn, Lock, Mail, AlertCircle, ArrowRight, Sparkles, Send, CheckCircle2 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 export const Login: React.FC = () => {
-  const { login } = useAuth();
+  const { login, resendVerification } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -12,6 +12,11 @@ export const Login: React.FC = () => {
   const [password, setPassword] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+
+  const [isUnconfirmed, setIsUnconfirmed] = useState(false);
+  const [unconfirmedEmail, setUnconfirmedEmail] = useState('');
+  const [isResending, setIsResending] = useState(false);
+  const [resendSuccess, setResendSuccess] = useState(false);
 
   const from = (location.state as any)?.from?.pathname || '/';
 
@@ -24,11 +29,19 @@ export const Login: React.FC = () => {
 
     setIsLoading(true);
     setErrorMsg('');
+    setIsUnconfirmed(false);
+    setResendSuccess(false);
 
     try {
       const res = await login(identifier.trim(), password);
       if (!res.success) {
-        setErrorMsg(res.error || 'Invalid credentials. Please verify your Student ID / Email and password.');
+        if (res.isUnconfirmedEmail) {
+          setIsUnconfirmed(true);
+          setUnconfirmedEmail(res.email || identifier.trim());
+          setErrorMsg(res.error || 'Your email address has not been verified yet.');
+        } else {
+          setErrorMsg(res.error || 'Invalid credentials. Please verify your Student ID / Email and password.');
+        }
       } else {
         navigate(from, { replace: true });
       }
@@ -37,6 +50,23 @@ export const Login: React.FC = () => {
       setErrorMsg(err.message || 'Invalid credentials. Please try again.');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleResend = async () => {
+    if (!unconfirmedEmail) return;
+    setIsResending(true);
+    try {
+      const res = await resendVerification(unconfirmedEmail);
+      if (res.success) {
+        setResendSuccess(true);
+      } else {
+        setErrorMsg(res.error || 'Failed to resend confirmation email.');
+      }
+    } catch {
+      setErrorMsg('Failed to resend confirmation email.');
+    } finally {
+      setIsResending(false);
     }
   };
 
@@ -97,14 +127,37 @@ export const Login: React.FC = () => {
               Welcome Back!
             </h1>
             <p className="text-xs text-[#5C6A60]">
-              Sign in with your registered GPM email or Student ID / Enrollment Number.
+              Sign in with your registered email or Student ID / Enrollment Number.
             </p>
           </div>
 
           {errorMsg && (
-            <div className="p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center gap-2.5 animate-in fade-in">
-              <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
-              <span>{errorMsg}</span>
+            <div className="p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex flex-col gap-2 animate-in fade-in">
+              <div className="flex items-start gap-2.5">
+                <AlertCircle className="w-4 h-4 shrink-0 text-rose-600 mt-0.5" />
+                <span>{errorMsg}</span>
+              </div>
+              {isUnconfirmed && (
+                <div className="pt-2 border-t border-rose-200 flex items-center justify-between">
+                  <span className="text-[11px] text-rose-700">Didn't receive the verification email?</span>
+                  <button
+                    type="button"
+                    onClick={handleResend}
+                    disabled={isResending}
+                    className="inline-flex items-center gap-1.5 px-3 py-1 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-[11px] font-semibold transition disabled:opacity-50"
+                  >
+                    <Send className="w-3 h-3" />
+                    <span>{isResending ? 'Sending...' : 'Resend Email'}</span>
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {resendSuccess && (
+            <div className="p-3.5 rounded-2xl bg-[#F4F7F4] border border-[#C5DCCE] text-[#1B382B] text-xs flex items-center gap-2 animate-in fade-in">
+              <CheckCircle2 className="w-4 h-4 shrink-0 text-[#2D5A43]" />
+              <span>Confirmation email successfully resent to {unconfirmedEmail}. Please check your inbox or spam folder.</span>
             </div>
           )}
 
@@ -120,7 +173,7 @@ export const Login: React.FC = () => {
                   required
                   value={identifier}
                   onChange={(e) => setIdentifier(e.target.value)}
-                  placeholder="student@gpmalvan.ac.in or 2200150042"
+                  placeholder="student@gmail.com or 2200150042"
                   className="w-full pl-11 pr-4 py-3.5 rounded-2xl border border-[#ECE7DC] bg-[#FBF9F4] text-[#1B382B] placeholder:text-[#9AA59D] text-sm focus:outline-none focus:ring-2 focus:ring-[#2D5A43]/20 focus:border-[#2D5A43] transition"
                 />
               </div>

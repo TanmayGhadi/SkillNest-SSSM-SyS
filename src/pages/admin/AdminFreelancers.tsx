@@ -63,7 +63,7 @@ export const AdminFreelancers: React.FC = () => {
                     <td className="py-4 px-5 font-semibold text-[#1B382B]">
                       <div className="flex items-center gap-2">
                         <span>{f.profile?.full_name || 'GPM Student'}</span>
-                        <ShieldCheck className="w-4 h-4 text-[#2D5A43]" title="Verified GPM Peer" />
+                        <ShieldCheck className="w-4 h-4 text-[#2D5A43]" />
                       </div>
                     </td>
                     <td className="py-4 px-5 text-[#5C6A60]">{f.title || 'Student Freelancer'}</td>
@@ -75,7 +75,7 @@ export const AdminFreelancers: React.FC = () => {
                       </div>
                     </td>
                     <td className="py-4 px-5 text-[#5C6A60] font-semibold">
-                      {f.completed_orders_count || 0} orders
+                      {f.completed_orders || f.completed_orders_count || 0} orders
                     </td>
                     <td className="py-4 px-5">
                       <div className="flex flex-wrap gap-1 max-w-xs">

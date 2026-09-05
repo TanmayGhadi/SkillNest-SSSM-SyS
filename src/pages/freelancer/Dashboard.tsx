@@ -209,7 +209,7 @@ export const FreelancerDashboard: React.FC = () => {
                 <div key={service.id} className="pt-4 first:pt-0 flex items-center justify-between gap-4">
                   <div>
                     <h4 className="font-serif font-bold text-[#1B382B] text-sm line-clamp-1">{service.title}</h4>
-                    <p className="text-xs text-[#717E73]">{service.category} &bull; ₹{service.price}</p>
+                    <p className="text-xs text-[#717E73]">{typeof service.category === 'object' ? service.category?.name : (service.category || 'General')} &bull; ₹{service.price}</p>
                   </div>
                   <span
                     className={`px-2.5 py-1 rounded-full text-[10px] font-semibold ${

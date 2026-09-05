@@ -31,7 +31,7 @@ export const ProfilePage: React.FC = () => {
   // Student form state
   const [fullName, setFullName] = useState(profile?.full_name || '');
   const [department, setDepartment] = useState(profile?.department || 'Computer Engineering');
-  const [year, setYear] = useState<'FY' | 'SY' | 'TY'>(profile?.year || 'TY');
+  const [year, setYear] = useState<'FY' | 'SY' | 'TY'>((profile?.year as 'FY' | 'SY' | 'TY') || 'TY');
   const [enrollmentNo, setEnrollmentNo] = useState(profile?.enrollment_no || '');
   const [phone, setPhone] = useState(profile?.phone || '');
   const [bio, setBio] = useState(profile?.bio || '');
@@ -57,7 +57,7 @@ export const ProfilePage: React.FC = () => {
     if (profile) {
       setFullName(profile.full_name || '');
       setDepartment(profile.department || 'Computer Engineering');
-      setYear(profile.year || 'TY');
+      setYear((profile.year as 'FY' | 'SY' | 'TY') || 'TY');
       setEnrollmentNo(profile.enrollment_no || '');
       setPhone(profile.phone || '');
       setBio(profile.bio || '');

@@ -121,7 +121,7 @@ export const MyServices: React.FC = () => {
                 <div className="space-y-1.5 flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="px-3 py-1 rounded-full bg-[#EFEAE0] text-[#1B382B] text-xs font-semibold border border-[#E2D9C8]">
-                      {service.category}
+                      {typeof service.category === 'object' ? service.category?.name : (service.category || 'General')}
                     </span>
                     <span
                       className={`px-2.5 py-0.5 rounded-full text-[10px] font-semibold ${

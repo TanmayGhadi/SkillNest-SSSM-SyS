@@ -73,7 +73,7 @@ export const AdminServices: React.FC = () => {
                 {services.map((s) => (
                   <tr key={s.id} className="hover:bg-[#FBF9F4] transition">
                     <td className="py-4 px-5 font-semibold text-[#1B382B] max-w-sm truncate">{s.title}</td>
-                    <td className="py-4 px-5 text-[#5C6A60]">{s.category}</td>
+                    <td className="py-4 px-5 text-[#5C6A60]">{typeof s.category === 'object' ? s.category?.name : (s.category || 'General')}</td>
                     <td className="py-4 px-5 font-bold text-[#1B382B]">₹{s.price}</td>
                     <td className="py-4 px-5 text-[#5C6A60]">{s.delivery_days} days</td>
                     <td className="py-4 px-5">
