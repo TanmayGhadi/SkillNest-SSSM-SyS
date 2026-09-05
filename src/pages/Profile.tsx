@@ -92,7 +92,11 @@ export const ProfilePage: React.FC = () => {
   };
 
   const handleAvatarFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files || !e.target.files[0] || !user) return;
+    if (!e.target.files || !e.target.files[0]) return;
+    if (!user) {
+      setSaveError('Your session has expired. Please sign in again.');
+      return;
+    }
     const file = e.target.files[0];
 
     // Validate size (max 5MB)
@@ -101,35 +105,49 @@ export const ProfilePage: React.FC = () => {
       return;
     }
 
+    if (!file.type.startsWith('image/')) {
+      setSaveError('Please select a valid image file (PNG, JPG, WEBP).');
+      return;
+    }
+
     setIsUploadingPhoto(true);
     setSaveError('');
 
     try {
-      const fileExt = file.name.split('.').pop();
+      const fileExt = file.name.split('.').pop() || 'jpg';
       const filePath = `${user.id}/avatar-${Date.now()}.${fileExt}`;
 
+      // 1. Upload to Supabase Storage
       const { error: uploadError } = await supabase.storage
         .from('avatars')
         .upload(filePath, file, { upsert: true });
 
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        console.error('[SkillNest Avatar] Supabase storage upload error:', {
+          message: uploadError.message,
+          name: uploadError.name,
+        });
+        throw new Error(`Storage upload failed: ${uploadError.message}`);
+      }
 
+      // 2. Obtain clean public URL
       const { data: { publicUrl } } = supabase.storage
         .from('avatars')
         .getPublicUrl(filePath);
 
       setAvatarUrl(publicUrl);
-      await updateProfile({ avatar_url: publicUrl });
+
+      // 3. Save avatar URL to profile in database
+      const res = await updateProfile({ avatar_url: publicUrl });
+      if (!res.success) {
+        throw new Error(res.error || 'Photo uploaded but could not update avatar in profile.');
+      }
+
       setSaveSuccess(true);
       setTimeout(() => setSaveSuccess(false), 3000);
     } catch (err: any) {
-      console.error('Avatar upload error:', err);
-      // Fallback to simulated data URL for local evaluation
-      const localUrl = URL.createObjectURL(file);
-      setAvatarUrl(localUrl);
-      await updateProfile({ avatar_url: localUrl });
-      setSaveSuccess(true);
-      setTimeout(() => setSaveSuccess(false), 3000);
+      console.error('[SkillNest Avatar] Failed to update profile photo:', err);
+      setSaveError(err.message || 'Failed to upload profile photo.');
     } finally {
       setIsUploadingPhoto(false);
     }
@@ -155,22 +173,34 @@ export const ProfilePage: React.FC = () => {
 
   const handleSaveStudent = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!user) {
+      setSaveError('Your session has expired. Please sign in again.');
+      return;
+    }
+
+    if (!fullName.trim()) {
+      setSaveError('Full legal name is required.');
+      return;
+    }
+
     setIsSaving(true);
     setSaveError('');
     setSaveSuccess(false);
 
     try {
-      const success = await updateProfile({
+      // NOTE: enrollment_no, student_id, email, and id are immutable official identifiers and excluded from update
+      const res = await updateProfile({
         full_name: fullName.trim(),
         department,
         year,
-        enrollment_no: enrollmentNo.trim(),
         phone: phone.trim() || undefined,
         bio: bio.trim() || undefined,
         avatar_url: avatarUrl.trim() || undefined,
       });
 
-      if (!success) throw new Error('Could not update profile in database.');
+      if (!res.success) {
+        throw new Error(res.error || 'Could not update profile in database.');
+      }
 
       setSaveSuccess(true);
       setTimeout(() => setSaveSuccess(false), 3000);
@@ -183,6 +213,11 @@ export const ProfilePage: React.FC = () => {
 
   const handleSaveFreelancer = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!user) {
+      setSaveError('Your session has expired. Please sign in again.');
+      return;
+    }
+
     setIsSaving(true);
     setSaveError('');
     setSaveSuccess(false);
@@ -363,14 +398,13 @@ export const ProfilePage: React.FC = () => {
               </div>
 
               <div className="space-y-1.5">
-                <label className="font-semibold text-[#1B382B] uppercase tracking-wider">Student ID / Enrollment Number *</label>
+                <label className="font-semibold text-[#1B382B] uppercase tracking-wider">Student ID / Enrollment Number (Official)</label>
                 <input
                   type="text"
-                  required
+                  readOnly
                   value={enrollmentNo}
-                  onChange={(e) => setEnrollmentNo(e.target.value)}
-                  placeholder="e.g. 2200150042"
-                  className="w-full px-4 py-3 rounded-2xl border border-[#ECE7DC] bg-[#FBF9F4] text-[#1B382B] text-sm focus:outline-none focus:ring-2 focus:ring-[#2D5A43]/20 focus:border-[#2D5A43]"
+                  title="Official institutional Student ID is immutable after registration"
+                  className="w-full px-4 py-3 rounded-2xl border border-[#ECE7DC] bg-[#F4F1EA] text-[#5C6A60] text-sm cursor-not-allowed focus:outline-none"
                 />
               </div>
             </div>

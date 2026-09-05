@@ -231,7 +231,7 @@ ALTER TABLE public.favorites ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.reviews ENABLE ROW LEVEL SECURITY;
 
 -- 12. RLS Policies
--- Profiles: readable by all, writable by user
+-- Profiles: readable by all, insertable/updatable by own auth ID
 DROP POLICY IF EXISTS "Public profiles viewable by all" ON public.profiles;
 CREATE POLICY "Public profiles viewable by all" ON public.profiles FOR SELECT USING (true);
 
@@ -239,7 +239,9 @@ DROP POLICY IF EXISTS "Users can insert own profile" ON public.profiles;
 CREATE POLICY "Users can insert own profile" ON public.profiles FOR INSERT WITH CHECK (auth.uid() = id);
 
 DROP POLICY IF EXISTS "Users can update own profile" ON public.profiles;
-CREATE POLICY "Users can update own profile" ON public.profiles FOR UPDATE USING (auth.uid() = id);
+CREATE POLICY "Users can update own profile" ON public.profiles FOR UPDATE 
+  USING (auth.uid() = id) 
+  WITH CHECK (auth.uid() = id);
 
 -- Freelancer Profiles: readable by all, managed by owner
 DROP POLICY IF EXISTS "Freelancer profiles viewable by all" ON public.freelancer_profiles;
@@ -286,3 +288,32 @@ CREATE POLICY "Reviews viewable by all" ON public.reviews FOR SELECT USING (true
 
 DROP POLICY IF EXISTS "Students can add reviews" ON public.reviews;
 CREATE POLICY "Students can add reviews" ON public.reviews FOR INSERT WITH CHECK (auth.uid() = reviewer_id);
+
+-- 13. Supabase Storage Buckets Setup
+INSERT INTO storage.buckets (id, name, public) VALUES
+  ('avatars', 'avatars', true),
+  ('services', 'services', true),
+  ('resources', 'resources', true),
+  ('orders', 'orders', false),
+  ('submissions', 'submissions', false)
+ON CONFLICT (id) DO UPDATE SET public = EXCLUDED.public;
+
+DROP POLICY IF EXISTS "Avatars are publicly readable" ON storage.objects;
+CREATE POLICY "Avatars are publicly readable" ON storage.objects FOR SELECT USING (bucket_id = 'avatars');
+
+DROP POLICY IF EXISTS "Users can upload own avatar" ON storage.objects;
+CREATE POLICY "Users can upload own avatar" ON storage.objects FOR INSERT 
+  WITH CHECK (bucket_id = 'avatars' AND auth.role() = 'authenticated');
+
+DROP POLICY IF EXISTS "Users can update own avatar" ON storage.objects;
+CREATE POLICY "Users can update own avatar" ON storage.objects FOR UPDATE 
+  USING (bucket_id = 'avatars' AND auth.role() = 'authenticated');
+
+-- 14. Explicit Schema Grants & PostgREST Schema Cache Reload
+GRANT USAGE ON SCHEMA public TO anon, authenticated;
+GRANT ALL ON ALL TABLES IN SCHEMA public TO anon, authenticated;
+GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO anon, authenticated;
+GRANT ALL ON ALL ROUTINES IN SCHEMA public TO anon, authenticated;
+
+-- Refresh PostgREST schema cache immediately
+NOTIFY pgrst, 'reload schema';

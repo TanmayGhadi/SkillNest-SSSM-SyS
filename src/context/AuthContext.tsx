@@ -28,7 +28,7 @@ interface AuthContextType {
   login: (credentials: any, password?: string) => Promise<{ success: boolean; error?: string; isUnconfirmedEmail?: boolean; email?: string }>;
   logout: () => Promise<void>;
   resendVerification: (email: string) => Promise<{ success: boolean; error?: string }>;
-  updateProfile: (data: Partial<Profile>) => Promise<boolean>;
+  updateProfile: (data: Partial<Profile>) => Promise<{ success: boolean; error?: string; profile?: Profile }>;
   activateFreelancer: (freelancerData: any) => Promise<boolean>;
   refreshStats: () => Promise<void>;
   refreshProfile: () => Promise<void>;
@@ -453,20 +453,173 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const updateProfile = async (data: Partial<Profile>) => {
-    if (!profile || !user) return false;
-    try {
-      const { error } = await supabase.from('profiles').update(data).eq('id', user.id);
-      if (!error) {
-        const newProfile = { ...profile, ...data };
-        setProfile(newProfile);
-        setActivityStats(prev => ({ ...prev, profileCompletion: calculateProfileCompletion(newProfile) }));
-        return true;
-      }
-    } catch (e) {
-      console.error('Profile update error:', e);
+  const updateProfile = async (data: Partial<Profile>): Promise<{ success: boolean; error?: string; profile?: Profile }> => {
+    // 1. Verify authenticated user
+    if (!user || !user.id) {
+      console.error('[SkillNest Profile] Aborted: No valid authenticated user session.');
+      return { success: false, error: 'Your session has expired. Please sign in again.' };
     }
-    return false;
+
+    try {
+      // 2. Strict field filtering: exclude immutable identity fields
+      // (id, email, student_id, enrollment_no, role, created_at must remain immutable)
+      const updatePayload: Record<string, any> = {
+        updated_at: new Date().toISOString(),
+      };
+
+      if (data.full_name !== undefined) {
+        const cleanName = data.full_name.trim();
+        if (!cleanName) {
+          return { success: false, error: 'Full legal name cannot be empty.' };
+        }
+        updatePayload.full_name = cleanName;
+      }
+
+      if (data.department !== undefined && data.department) {
+        updatePayload.department = data.department;
+      }
+
+      if (data.year !== undefined && data.year) {
+        updatePayload.year = data.year;
+      }
+
+      if (data.semester !== undefined && data.semester) {
+        updatePayload.semester = data.semester;
+      }
+
+      if (data.phone !== undefined) {
+        updatePayload.phone = data.phone?.trim() || null;
+      }
+
+      if (data.bio !== undefined) {
+        updatePayload.bio = data.bio?.trim() || null;
+      }
+
+      if (data.avatar_url !== undefined) {
+        updatePayload.avatar_url = data.avatar_url?.trim() || null;
+      }
+
+      // 3. Verify whether profile row exists in public.profiles for this auth.users.id
+      const { data: existingRow, error: checkErr } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      if (checkErr) {
+        console.error('[SkillNest Profile] Row check failed:', {
+          message: checkErr.message,
+          code: checkErr.code,
+          details: checkErr.details,
+          hint: checkErr.hint,
+        });
+      }
+
+      let dbResult;
+
+      if (!existingRow) {
+        // Row not created yet (e.g. signup trigger did not run); create own profile row
+        const meta = user.user_metadata || {};
+        const newStudentId = profile?.student_id || meta.student_id || meta.enrollment_no || ('STU-' + user.id.substring(0, 8));
+        const newEnrollmentNo = profile?.enrollment_no || meta.enrollment_no || meta.student_id || ('STU-' + user.id.substring(0, 8));
+
+        const initialProfileRow = {
+          id: user.id,
+          full_name: updatePayload.full_name || profile?.full_name || meta.full_name || 'GPM Student',
+          student_id: newStudentId,
+          enrollment_no: newEnrollmentNo,
+          email: user.email || profile?.email || '',
+          department: updatePayload.department || profile?.department || meta.department || 'Computer Engineering',
+          year: updatePayload.year || profile?.year || meta.year || 'TY',
+          semester: updatePayload.semester || profile?.semester || meta.semester || 'Sem 5',
+          phone: updatePayload.phone !== undefined ? updatePayload.phone : (profile?.phone || meta.phone || null),
+          bio: updatePayload.bio !== undefined ? updatePayload.bio : (profile?.bio || meta.bio || null),
+          avatar_url: updatePayload.avatar_url !== undefined ? updatePayload.avatar_url : (profile?.avatar_url || meta.avatar_url || null),
+          role: profile?.role || meta.role || 'student',
+          is_freelancer: Boolean(profile?.is_freelancer || meta.is_freelancer),
+          created_at: user.created_at || new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        };
+
+        dbResult = await supabase
+          .from('profiles')
+          .insert(initialProfileRow)
+          .select()
+          .single();
+      } else {
+        // Row exists; run explicit UPDATE targeting auth user's ID
+        dbResult = await supabase
+          .from('profiles')
+          .update(updatePayload)
+          .eq('id', user.id)
+          .select()
+          .single();
+      }
+
+      const { data: savedProfile, error: dbError } = dbResult;
+
+      if (dbError) {
+        console.error('[SkillNest Profile] Database update error:', {
+          message: dbError.message,
+          code: dbError.code,
+          details: dbError.details,
+          hint: dbError.hint,
+        });
+
+        if (dbError.code === 'PGRST205') {
+          return {
+            success: false,
+            error: "Database table 'profiles' is not initialized in Supabase. Please run supabase/migration.sql in the Supabase SQL Editor.",
+          };
+        }
+
+        return {
+          success: false,
+          error: dbError.message || 'Could not update profile in database.',
+        };
+      }
+
+      if (!savedProfile) {
+        console.error('[SkillNest Profile] Update returned no row. Possible RLS permission restriction.');
+        return {
+          success: false,
+          error: 'Profile was not updated. Please check database permissions.',
+        };
+      }
+
+      // 4. Update React profile state
+      const mergedProfile: Profile = {
+        ...(profile || {}),
+        ...savedProfile,
+      } as Profile;
+
+      setProfile(mergedProfile);
+      setActivityStats(prev => ({
+        ...prev,
+        profileCompletion: calculateProfileCompletion(mergedProfile),
+      }));
+
+      // 5. Keep Supabase Auth user_metadata synchronized
+      try {
+        await supabase.auth.updateUser({
+          data: {
+            full_name: mergedProfile.full_name,
+            department: mergedProfile.department,
+            year: mergedProfile.year,
+            phone: mergedProfile.phone,
+            bio: mergedProfile.bio,
+            avatar_url: mergedProfile.avatar_url,
+          },
+        });
+      } catch (authErr) {
+        console.warn('[SkillNest Profile] Auth metadata sync warning:', authErr);
+      }
+
+      return { success: true, profile: mergedProfile };
+    } catch (err: any) {
+      console.error('[SkillNest Profile] Unexpected exception in updateProfile:', err);
+      return { success: false, error: err.message || 'An unexpected error occurred while updating profile.' };
+    }
   };
 
   const activateFreelancer = async (freelancerData: any) => {
