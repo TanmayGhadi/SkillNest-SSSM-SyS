@@ -4,6 +4,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { ModeProvider } from './context/ModeContext';
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
+import { MobileBottomNav } from './components/MobileBottomNav';
 
 // Public pages
 import { Home } from './pages/Home';
@@ -72,7 +73,7 @@ export const App: React.FC = () => {
         <ModeProvider>
           <div className="min-h-screen flex flex-col bg-[#FBF9F4] text-[#1B382B] selection:bg-[#2D5A43]/20 selection:text-[#1B382B]">
             <Navbar />
-            <main className="flex-1">
+            <main className="flex-1 pb-20 lg:pb-0">
               <Routes>
                 {/* Public General Routes */}
                 <Route path="/" element={<Home />} />
@@ -263,6 +264,7 @@ export const App: React.FC = () => {
               </Routes>
             </main>
             <Footer />
+            <MobileBottomNav />
           </div>
         </ModeProvider>
       </AuthProvider>

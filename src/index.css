@@ -14,12 +14,23 @@
   body {
     background-color: #FBF9F4;
     color: #1B382B;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
     @apply antialiased font-sans selection:bg-[#2D5A43]/15 selection:text-[#1B382B] min-h-screen flex flex-col;
   }
 
   h1, h2, h3, .font-serif-heading {
     font-family: var(--font-heading);
   }
+}
+
+/* Hide scrollbars for mobile horizontal swipeable carousels and tabs */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
 .font-handwriting {

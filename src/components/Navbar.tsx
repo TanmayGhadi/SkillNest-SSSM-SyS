@@ -66,58 +66,58 @@ export const Navbar: React.FC = () => {
   return (
     <>
       <header className="sticky top-0 z-40 bg-[#FBF9F4]/95 backdrop-blur-md border-b border-[#ECE7DC] transition-all">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-20">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16 sm:h-20">
             
             {/* Logo & Brand Identity */}
-            <div className="flex items-center gap-5">
-              <Link to="/" className="flex items-center gap-2.5 group">
-                <div className="w-10 h-10 rounded-2xl bg-[#1B382B] flex items-center justify-center text-[#E5ECE6] shadow-sm group-hover:scale-105 transition-transform duration-200">
-                  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+            <div className="flex items-center gap-3 sm:gap-5">
+              <Link to="/" className="flex items-center gap-2 group">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-2xl bg-[#1B382B] flex items-center justify-center text-[#E5ECE6] shadow-sm group-hover:scale-105 transition-transform duration-200">
+                  <svg className="w-4 h-4 sm:w-5 sm:h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
                   </svg>
                 </div>
                 <div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="font-serif text-2xl font-bold tracking-tight text-[#1B382B]">
+                  <div className="flex items-center gap-1">
+                    <span className="font-serif text-lg sm:text-2xl font-bold tracking-tight text-[#1B382B]">
                       SkillNest
                     </span>
-                    <span className="bg-[#EAE5D8] text-[#1B382B] text-[10px] font-bold px-1.5 py-0.5 rounded-full border border-[#DCD3C1]">
+                    <span className="bg-[#EAE5D8] text-[#1B382B] text-[9px] sm:text-[10px] font-bold px-1 sm:px-1.5 py-0.5 rounded-full border border-[#DCD3C1]">
                       GPM
                     </span>
                   </div>
-                  <span className="text-[10px] text-[#717E73] block uppercase tracking-wider font-semibold -mt-0.5 font-sans">
-                    Govt. Polytechnic Malvan
+                  <span className="text-[9px] sm:text-[10px] text-[#717E73] block uppercase tracking-wider font-semibold -mt-0.5 font-sans">
+                    Govt. Poly. Malvan
                   </span>
                 </div>
               </Link>
 
-              {/* Dual Mode Switcher Pill */}
+              {/* Dual Mode Switcher Pill (Desktop & Mobile Compact) */}
               {user && (
-                <div className="hidden md:flex items-center p-1 bg-[#EFEAE0] rounded-full border border-[#E0D8C8]">
+                <div className="flex items-center p-0.5 sm:p-1 bg-[#EFEAE0] rounded-full border border-[#E0D8C8]">
                   <button
                     onClick={() => handleModeSwitch('student')}
-                    className={`flex items-center gap-1.5 px-3.5 py-1 text-xs font-semibold rounded-full transition-all duration-300 ${
+                    className={`flex items-center gap-1 px-2.5 sm:px-3.5 py-1 text-[11px] sm:text-xs font-semibold rounded-full transition-all duration-300 ${
                       mode === 'student'
                         ? 'bg-[#1B382B] text-[#FBF9F4] shadow-sm'
                         : 'text-[#4A5E4F] hover:text-[#1B382B]'
                     }`}
                   >
-                    <GraduationCap className="w-3.5 h-3.5" />
-                    Student
+                    <GraduationCap className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                    <span className="hidden xs:inline sm:inline">Student</span>
                   </button>
                   <button
                     onClick={() => handleModeSwitch('freelancer')}
-                    className={`flex items-center gap-1.5 px-3.5 py-1 text-xs font-semibold rounded-full transition-all duration-300 ${
+                    className={`flex items-center gap-1 px-2.5 sm:px-3.5 py-1 text-[11px] sm:text-xs font-semibold rounded-full transition-all duration-300 ${
                       mode === 'freelancer'
                         ? 'bg-[#1B382B] text-[#FBF9F4] shadow-sm'
                         : 'text-[#4A5E4F] hover:text-[#1B382B]'
                     }`}
                   >
-                    <Briefcase className="w-3.5 h-3.5" />
-                    Freelancer
+                    <Briefcase className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                    <span className="hidden xs:inline sm:inline">Freelancer</span>
                     {!isFreelancer && (
-                      <span className="bg-[#B85D36] text-white text-[9px] px-1.5 py-0.2 rounded-full font-bold">New</span>
+                      <span className="bg-[#B85D36] text-white text-[8px] sm:text-[9px] px-1 py-0.2 rounded-full font-bold">New</span>
                     )}
                   </button>
                 </div>
@@ -576,11 +576,48 @@ export const Navbar: React.FC = () => {
             )}
 
             <div className="pt-3 border-t border-[#ECE7DC] flex flex-col gap-2">
-              <Link to="/contact" onClick={() => setIsMobileMenuOpen(false)} className="text-xs text-[#5C6A60]">Contact GPM Campus</Link>
+              {user ? (
+                <>
+                  <Link 
+                    to="/profile" 
+                    onClick={() => setIsMobileMenuOpen(false)} 
+                    className="flex items-center gap-2 py-2 text-sm font-medium text-[#1B382B]"
+                  >
+                    <User className="w-4 h-4 text-[#2D5A43]" />
+                    <span>My Profile ({profile?.full_name || 'Student'})</span>
+                  </Link>
+                  <Link 
+                    to="/settings" 
+                    onClick={() => setIsMobileMenuOpen(false)} 
+                    className="flex items-center gap-2 py-2 text-sm font-medium text-[#1B382B]"
+                  >
+                    <Settings className="w-4 h-4 text-[#2D5A43]" />
+                    <span>Account Settings</span>
+                  </Link>
+                </>
+              ) : null}
+
+              <Link to="/contact" onClick={() => setIsMobileMenuOpen(false)} className="text-xs text-[#5C6A60] py-1">
+                Contact GPM Campus
+              </Link>
               {isAdmin && (
-                <Link to="/admin" onClick={() => setIsMobileMenuOpen(false)} className="text-xs text-[#B85D36] font-semibold">
+                <Link to="/admin" onClick={() => setIsMobileMenuOpen(false)} className="text-xs text-[#B85D36] font-semibold py-1">
                   GPM Faculty Admin Panel
                 </Link>
+              )}
+
+              {user && (
+                <button
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    logout();
+                    navigate('/login');
+                  }}
+                  className="flex items-center gap-2 py-2 text-xs font-semibold text-rose-700 hover:text-rose-800 transition text-left"
+                >
+                  <LogOut className="w-4 h-4" />
+                  <span>Sign Out</span>
+                </button>
               )}
             </div>
           </div>
